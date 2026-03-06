@@ -16,6 +16,11 @@ const gallery = [
   { src: "/images/post_2.jpg", alt: "สับปะรดคัดสรร" },
   { src: "/images/post_3.jpg", alt: "กระบวนการทำน้ำผลไม้" },
   { src: "/images/post_4.jpg", alt: "แก้วน้ำเย็นสดชื่น" },
+  { src: "/images/post_6.jpg", alt: "แก้วน้ำเย็นสดชื่น" },
+  { src: "/images/post_7.jpg", alt: "แก้วน้ำเย็นสดชื่น" },
+  { src: "/images/post_8.jpg", alt: "แก้วน้ำเย็นสดชื่น" },
+  { src: "/images/post_9.jpg", alt: "แก้วน้ำเย็นสดชื่น" },
+  { src: "/images/post_10.jpg", alt: "แก้วน้ำเย็นสดชื่น" },
 ];
 
 export default function ProductHighlight() {
