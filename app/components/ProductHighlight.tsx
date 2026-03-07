@@ -1,8 +1,9 @@
 "use client";
 
 import Image from "next/image";
-import { ShoppingBag, Star, CheckCircle2, Droplets } from "lucide-react";
+import { ShoppingBag, Star, CheckCircle2, Droplets, ChevronLeft, ChevronRight } from "lucide-react";
 import { useOrderModal } from "../context/OrderModalContext";
+import { useState, useEffect, useCallback } from "react";
 
 const checkpoints = [
   "สินค้าใหม่ทุกออร์เดอร์ ไม่มีการตกค้าง",
@@ -11,20 +12,47 @@ const checkpoints = [
   "ใช้สับปะรดไทยแท้ สายพันธุ์ปัตตาเวีย คัดพิเศษ หอมหวานในตัว",
 ];
 
-const gallery = [
+const slides = [
+  { src: "/images/post_5.jpg", alt: "Juice Juice — น้ำสับปะรดคั้นสดซิกเนเจอร์" },
   { src: "/images/post_1.jpg", alt: "น้ำสับปะรดสดคั้น" },
   { src: "/images/post_2.jpg", alt: "สับปะรดคัดสรร" },
   { src: "/images/post_3.jpg", alt: "กระบวนการทำน้ำผลไม้" },
   { src: "/images/post_4.jpg", alt: "แก้วน้ำเย็นสดชื่น" },
-  { src: "/images/post_6.jpg", alt: "แก้วน้ำเย็นสดชื่น" },
-  { src: "/images/post_7.jpg", alt: "แก้วน้ำเย็นสดชื่น" },
-  { src: "/images/post_8.jpg", alt: "แก้วน้ำเย็นสดชื่น" },
-  { src: "/images/post_9.jpg", alt: "แก้วน้ำเย็นสดชื่น" },
-  { src: "/images/post_10.jpg", alt: "แก้วน้ำเย็นสดชื่น" },
+  { src: "/images/post_6.jpg", alt: "ผลิตภัณฑ์ Juice Juice" },
+  { src: "/images/post_7.jpg", alt: "ผลิตภัณฑ์ Juice Juice" },
+  { src: "/images/post_8.jpg", alt: "ผลิตภัณฑ์ Juice Juice" },
+  { src: "/images/post_9.jpg", alt: "ผลิตภัณฑ์ Juice Juice" },
+  { src: "/images/post_10.jpg", alt: "ผลิตภัณฑ์ Juice Juice" },
 ];
+
+const AUTO_PLAY_INTERVAL = 3500;
 
 export default function ProductHighlight() {
   const { openModal } = useOrderModal();
+  const [current, setCurrent] = useState(0);
+  const [isAnimating, setIsAnimating] = useState(false);
+
+  const goTo = useCallback(
+    (index: number) => {
+      if (isAnimating) return;
+      setIsAnimating(true);
+      setCurrent((index + slides.length) % slides.length);
+      setTimeout(() => setIsAnimating(false), 400);
+    },
+    [isAnimating]
+  );
+
+  const prev = useCallback(() => goTo(current - 1), [current, goTo]);
+  const next = useCallback(() => goTo(current + 1), [current, goTo]);
+
+  // Auto-play
+  useEffect(() => {
+    const id = setInterval(() => {
+      setCurrent((c) => (c + 1) % slides.length);
+    }, AUTO_PLAY_INTERVAL);
+    return () => clearInterval(id);
+  }, []);
+
   return (
     <section
       id="product"
@@ -50,26 +78,36 @@ export default function ProductHighlight() {
         {/* Main product block */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16 items-center">
 
-          {/* Left — Product image */}
+          {/* Left — Image Carousel */}
           <div className="relative flex justify-center">
             {/* Outer glow */}
             <div className="absolute inset-0 rounded-3xl bg-gradient-to-br from-[#F5A623]/25 to-[#7B3F00]/15 blur-2xl scale-90" />
 
-            {/* Main image */}
+            {/* Carousel container */}
             <div className="relative z-10 w-full max-w-sm aspect-[4/5] rounded-3xl overflow-hidden shadow-2xl shadow-amber-300/40 border-4 border-white">
-              <Image
-                src="/images/post_5.jpg"
-                alt="Juice Juice — น้ำสับปะรดคั้นสดซิกเนเจอร์"
-                fill
-                className="object-cover"
-                sizes="(max-width: 640px) 100vw, 384px"
-              />
+              {/* Slides */}
+              {slides.map((slide, i) => (
+                <div
+                  key={i}
+                  className="absolute inset-0 transition-opacity duration-500 ease-in-out"
+                  style={{ opacity: i === current ? 1 : 0, zIndex: i === current ? 1 : 0 }}
+                >
+                  <Image
+                    src={slide.src}
+                    alt={slide.alt}
+                    fill
+                    className="object-cover"
+                    sizes="(max-width: 640px) 100vw, 384px"
+                    priority={i === 0}
+                  />
+                </div>
+              ))}
 
               {/* Overlay gradient */}
-              <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent" />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent z-10 pointer-events-none" />
 
-              {/* Price overlay on image */}
-              <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-10">
+              {/* Price overlay */}
+              <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-20">
                 <div className="bg-white/95 backdrop-blur-sm rounded-2xl px-6 py-3 shadow-xl text-center">
                   <div className="flex items-baseline justify-center gap-1">
                     <span className="text-4xl font-black text-[#7B3F00] leading-none">25</span>
@@ -78,6 +116,38 @@ export default function ProductHighlight() {
                   <div className="text-xs font-semibold text-[#7B3F00]/50 mt-0.5">ต่อแก้ว</div>
                 </div>
               </div>
+
+              {/* Prev / Next arrows */}
+              <button
+                onClick={prev}
+                aria-label="ภาพก่อนหน้า"
+                className="absolute left-2 top-1/2 -translate-y-1/2 z-20 bg-white/80 hover:bg-white backdrop-blur-sm text-[#7B3F00] rounded-full p-1.5 shadow-md transition-all duration-150 hover:scale-110 active:scale-95"
+              >
+                <ChevronLeft size={18} strokeWidth={2.5} />
+              </button>
+              <button
+                onClick={next}
+                aria-label="ภาพถัดไป"
+                className="absolute right-2 top-1/2 -translate-y-1/2 z-20 bg-white/80 hover:bg-white backdrop-blur-sm text-[#7B3F00] rounded-full p-1.5 shadow-md transition-all duration-150 hover:scale-110 active:scale-95"
+              >
+                <ChevronRight size={18} strokeWidth={2.5} />
+              </button>
+            </div>
+
+            {/* Dot indicators — below the card */}
+            <div className="absolute -bottom-8 left-1/2 -translate-x-1/2 flex gap-1.5 z-10">
+              {slides.map((_, i) => (
+                <button
+                  key={i}
+                  onClick={() => goTo(i)}
+                  aria-label={`ภาพที่ ${i + 1}`}
+                  className={`rounded-full transition-all duration-300 ${
+                    i === current
+                      ? "w-5 h-2 bg-[#F5A623]"
+                      : "w-2 h-2 bg-[#7B3F00]/25 hover:bg-[#F5A623]/60"
+                  }`}
+                />
+              ))}
             </div>
 
             {/* Rating badge */}
@@ -98,7 +168,7 @@ export default function ProductHighlight() {
           </div>
 
           {/* Right — Details */}
-          <div className="flex flex-col gap-7">
+          <div className="flex flex-col gap-7 mt-6 lg:mt-0">
 
             {/* Product name + price */}
             <div>
@@ -160,30 +230,6 @@ export default function ProductHighlight() {
                 ))}
               </div>
             </div>
-          </div>
-        </div>
-
-        {/* Photo gallery strip */}
-        <div className="mt-16 sm:mt-20">
-          <h3 className="text-center text-lg font-black text-[#7B3F00] mb-6 uppercase tracking-wider">
-            ภาพจากครัวของเรา
-          </h3>
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
-            {gallery.map((img, i) => (
-              <div
-                key={i}
-                className="aspect-square rounded-2xl overflow-hidden relative group shadow-md hover:shadow-xl transition-all duration-300 hover:-translate-y-1"
-              >
-                <Image
-                  src={img.src}
-                  alt={img.alt}
-                  fill
-                  className="object-cover transition-transform duration-500 group-hover:scale-110"
-                  sizes="(max-width: 640px) 50vw, 25vw"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-[#7B3F00]/30 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-              </div>
-            ))}
           </div>
         </div>
       </div>

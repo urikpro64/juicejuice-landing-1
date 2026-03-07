@@ -22,15 +22,15 @@ export default function Navbar() {
     { label: "เมนูของเรา", href: "#product" },
     { label: "รีวิว", href: "#reviews" },
     { label: "ราคาส่ง", href: "#wholesale" },
+    { label: "ติดต่อเรา", href: "#about" },
   ];
 
   return (
     <header
-      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
-        scrolled
+      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${scrolled
           ? "bg-[#FFFDF7]/95 backdrop-blur-md shadow-md shadow-amber-100"
           : "bg-transparent"
-      }`}
+        }`}
     >
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16 sm:h-20">
@@ -92,9 +92,8 @@ export default function Navbar() {
 
       {/* Mobile drawer */}
       <div
-        className={`md:hidden overflow-hidden transition-all duration-300 ${
-          menuOpen ? "max-h-72 opacity-100" : "max-h-0 opacity-0"
-        } bg-[#FFFDF7]/98 backdrop-blur-md border-t border-amber-100`}
+        className={`md:hidden overflow-hidden transition-all duration-300 ${menuOpen ? "max-h-72 opacity-100" : "max-h-0 opacity-0"
+          } bg-[#FFFDF7]/98 backdrop-blur-md border-t border-amber-100`}
       >
         <nav className="flex flex-col px-6 py-4 gap-4">
           {navLinks.map((link) => (

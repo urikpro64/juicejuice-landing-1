@@ -1,4 +1,7 @@
-import { Star, Quote } from "lucide-react";
+"use client";
+
+import { Star, Quote, ChevronLeft, ChevronRight } from "lucide-react";
+import { useState, useEffect, useCallback } from "react";
 
 const reviews = [
   {
@@ -69,6 +72,12 @@ const reviews = [
   },
 ];
 
+// Desktop: show 3 cards at a time → 4 stops (indices 0-3)
+const DESKTOP_VISIBLE = 3;
+const DESKTOP_STOPS = reviews.length - DESKTOP_VISIBLE + 1; // 4
+const MOBILE_STOPS = reviews.length; // 6
+const AUTO_PLAY_INTERVAL = 4000;
+
 function StarRow({ count, size = 14 }: { count: number; size?: number }) {
   return (
     <div className="flex gap-0.5">
@@ -83,8 +92,81 @@ function StarRow({ count, size = 14 }: { count: number; size?: number }) {
   );
 }
 
+function ReviewCard({ review }: { review: (typeof reviews)[0] }) {
+  return (
+    <div className="group relative flex flex-col gap-4 bg-white rounded-3xl border border-amber-100 hover:border-[#F5A623]/40 p-6 shadow-sm hover:shadow-xl hover:shadow-amber-100/60 transition-all duration-300 h-full">
+      {/* Quote icon */}
+      <Quote
+        size={32}
+        className="absolute top-5 right-5 text-[#F5A623]/15 group-hover:text-[#F5A623]/25 transition-colors"
+        strokeWidth={1.5}
+      />
+
+      {/* Stars + date */}
+      <div className="flex items-center justify-between">
+        <StarRow count={review.rating} />
+        <span className="text-xs text-[#7B3F00]/40 font-medium">{review.date}</span>
+      </div>
+
+      {/* Review text */}
+      <p className="text-sm text-[#2C1A0E]/75 leading-relaxed flex-1">{review.text}</p>
+
+      {/* Divider */}
+      <div className="border-t border-amber-100" />
+
+      {/* Reviewer info */}
+      <div className="flex items-center gap-3">
+        <div
+          className={`w-10 h-10 rounded-full bg-gradient-to-br ${review.avatarGradient} flex items-center justify-center text-white font-black text-base flex-shrink-0 shadow-sm`}
+        >
+          {review.avatar}
+        </div>
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-1.5 flex-wrap">
+            <span className="text-sm font-black text-[#2C1A0E]">{review.name}</span>
+            {review.verified && (
+              <span className="inline-flex items-center gap-0.5 text-[10px] font-bold text-[#7B3F00]/60 bg-[#FEF0D0] px-1.5 py-0.5 rounded-full">
+                ✓ ยืนยันแล้ว
+              </span>
+            )}
+          </div>
+          <div className="flex items-center gap-2 mt-0.5">
+            <span className="text-xs text-[#7B3F00]/40">{review.handle}</span>
+            {review.badge && (
+              <span className="text-[10px] font-bold text-[#F5A623] bg-[#FEF0D0] px-1.5 py-0.5 rounded-full">
+                {review.badge}
+              </span>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function Reviews() {
   const avgRating = (reviews.reduce((s, r) => s + r.rating, 0) / reviews.length).toFixed(1);
+
+  // Single index used for both mobile and desktop views
+  const [index, setIndex] = useState(0);
+
+  const goPrev = useCallback(() => setIndex((i) => Math.max(0, i - 1)), []);
+  const goNext = useCallback(
+    (maxStops: number) => setIndex((i) => Math.min(maxStops - 1, i + 1)),
+    []
+  );
+
+  // Auto-advance (desktop: max DESKTOP_STOPS, resets when hitting the boundary)
+  useEffect(() => {
+    const id = setInterval(() => {
+      setIndex((i) => (i + 1) % DESKTOP_STOPS);
+    }, AUTO_PLAY_INTERVAL);
+    return () => clearInterval(id);
+  }, []);
+
+  // Clamp index when resizing context changes stops
+  const desktopIndex = Math.min(index, DESKTOP_STOPS - 1);
+  const mobileIndex = Math.min(index, MOBILE_STOPS - 1);
 
   return (
     <section id="reviews" className="py-20 sm:py-28 bg-[#FDF6EE] relative overflow-hidden">
@@ -127,65 +209,96 @@ export default function Reviews() {
           </div>
         </div>
 
-        {/* Review cards grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 lg:gap-6">
-          {reviews.map((review, idx) => (
+        {/* ── CAROUSEL ── */}
+        <div className="relative">
+
+          {/* Prev arrow */}
+          <button
+            onClick={goPrev}
+            disabled={index === 0}
+            aria-label="รีวิวก่อนหน้า"
+            className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-3 sm:-translate-x-5 z-10 bg-white hover:bg-[#FEF0D0] disabled:opacity-30 disabled:cursor-not-allowed text-[#7B3F00] rounded-full p-2 shadow-md border border-amber-100 transition-all duration-150 hover:scale-110 active:scale-95"
+          >
+            <ChevronLeft size={20} strokeWidth={2.5} />
+          </button>
+
+          {/* Next arrow — desktop uses DESKTOP_STOPS, mobile uses MOBILE_STOPS */}
+          {/* We render two buttons with different visibility */}
+          <button
+            onClick={() => goNext(DESKTOP_STOPS)}
+            disabled={desktopIndex >= DESKTOP_STOPS - 1}
+            aria-label="รีวิวถัดไป"
+            className="hidden lg:flex absolute right-0 top-1/2 -translate-y-1/2 translate-x-3 sm:translate-x-5 z-10 bg-white hover:bg-[#FEF0D0] disabled:opacity-30 disabled:cursor-not-allowed text-[#7B3F00] rounded-full p-2 shadow-md border border-amber-100 transition-all duration-150 hover:scale-110 active:scale-95 items-center"
+          >
+            <ChevronRight size={20} strokeWidth={2.5} />
+          </button>
+          <button
+            onClick={() => goNext(MOBILE_STOPS)}
+            disabled={mobileIndex >= MOBILE_STOPS - 1}
+            aria-label="รีวิวถัดไป"
+            className="flex lg:hidden absolute right-0 top-1/2 -translate-y-1/2 translate-x-3 sm:translate-x-5 z-10 bg-white hover:bg-[#FEF0D0] disabled:opacity-30 disabled:cursor-not-allowed text-[#7B3F00] rounded-full p-2 shadow-md border border-amber-100 transition-all duration-150 hover:scale-110 active:scale-95 items-center"
+          >
+            <ChevronRight size={20} strokeWidth={2.5} />
+          </button>
+
+          {/* Track — clips overflow */}
+          <div className="overflow-hidden mx-1">
+            {/* ── MOBILE: single-card sliding (1 card = 100%) ── */}
             <div
-              key={idx}
-              className="group relative flex flex-col gap-4 bg-white rounded-3xl border border-amber-100 hover:border-[#F5A623]/40 p-6 shadow-sm hover:shadow-xl hover:shadow-amber-100/60 transition-all duration-300 hover:-translate-y-1"
+              className="flex lg:hidden transition-transform duration-500 ease-in-out"
+              style={{ transform: `translateX(-${mobileIndex * 100}%)` }}
             >
-              {/* Quote icon */}
-              <Quote
-                size={32}
-                className="absolute top-5 right-5 text-[#F5A623]/15 group-hover:text-[#F5A623]/25 transition-colors"
-                strokeWidth={1.5}
-              />
-
-              {/* Stars + date */}
-              <div className="flex items-center justify-between">
-                <StarRow count={review.rating} />
-                <span className="text-xs text-[#7B3F00]/40 font-medium">{review.date}</span>
-              </div>
-
-              {/* Review text */}
-              <p className="text-sm text-[#2C1A0E]/75 leading-relaxed flex-1">
-                {review.text}
-              </p>
-
-              {/* Divider */}
-              <div className="border-t border-amber-100" />
-
-              {/* Reviewer info */}
-              <div className="flex items-center gap-3">
-                {/* Avatar */}
-                <div
-                  className={`w-10 h-10 rounded-full bg-gradient-to-br ${review.avatarGradient} flex items-center justify-center text-white font-black text-base flex-shrink-0 shadow-sm`}
-                >
-                  {review.avatar}
+              {reviews.map((review, i) => (
+                <div key={i} className="min-w-full px-1 pb-2">
+                  <ReviewCard review={review} />
                 </div>
-
-                {/* Name + handle */}
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-1.5 flex-wrap">
-                    <span className="text-sm font-black text-[#2C1A0E]">{review.name}</span>
-                    {review.verified && (
-                      <span className="inline-flex items-center gap-0.5 text-[10px] font-bold text-[#7B3F00]/60 bg-[#FEF0D0] px-1.5 py-0.5 rounded-full">
-                        ✓ ยืนยันแล้ว
-                      </span>
-                    )}
-                  </div>
-                  <div className="flex items-center gap-2 mt-0.5">
-                    <span className="text-xs text-[#7B3F00]/40">{review.handle}</span>
-                    {review.badge && (
-                      <span className="text-[10px] font-bold text-[#F5A623] bg-[#FEF0D0] px-1.5 py-0.5 rounded-full">
-                        {review.badge}
-                      </span>
-                    )}
-                  </div>
-                </div>
-              </div>
+              ))}
             </div>
-          ))}
+
+            {/* ── DESKTOP: 3-cards-wide sliding (1 card = 33.333%) ── */}
+            <div
+              className="hidden lg:flex transition-transform duration-500 ease-in-out"
+              style={{ transform: `translateX(-${desktopIndex * (100 / DESKTOP_VISIBLE)}%)` }}
+            >
+              {reviews.map((review, i) => (
+                <div key={i} className="min-w-[33.333%] px-3 pb-2">
+                  <ReviewCard review={review} />
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Dot indicators */}
+          {/* Mobile dots (6) */}
+          <div className="flex lg:hidden justify-center gap-2 mt-6">
+            {reviews.map((_, i) => (
+              <button
+                key={i}
+                onClick={() => setIndex(i)}
+                aria-label={`รีวิวที่ ${i + 1}`}
+                className={`rounded-full transition-all duration-300 ${
+                  i === mobileIndex
+                    ? "w-5 h-2 bg-[#F5A623]"
+                    : "w-2 h-2 bg-[#7B3F00]/25 hover:bg-[#F5A623]/60"
+                }`}
+              />
+            ))}
+          </div>
+          {/* Desktop dots (4 stops) */}
+          <div className="hidden lg:flex justify-center gap-2 mt-6">
+            {[...Array(DESKTOP_STOPS)].map((_, i) => (
+              <button
+                key={i}
+                onClick={() => setIndex(i)}
+                aria-label={`หน้า ${i + 1}`}
+                className={`rounded-full transition-all duration-300 ${
+                  i === desktopIndex
+                    ? "w-5 h-2 bg-[#F5A623]"
+                    : "w-2 h-2 bg-[#7B3F00]/25 hover:bg-[#F5A623]/60"
+                }`}
+              />
+            ))}
+          </div>
         </div>
 
         {/* Bottom CTA strip */}

@@ -28,7 +28,7 @@ export default function Footer() {
   const year = new Date().getFullYear();
 
   return (
-    <footer className="relative bg-[#2C1A0E] text-white overflow-hidden">
+    <footer id="about" className="relative bg-[#2C1A0E] text-white overflow-hidden">
       {/* Top wave */}
       <div className="pointer-events-none">
         <svg
@@ -154,7 +154,7 @@ export default function Footer() {
               href="#product"
               className="mt-2 inline-flex items-center justify-center gap-2 bg-[#F5A623] hover:bg-[#D4861A] text-white font-black text-sm px-5 py-3 rounded-full shadow-lg shadow-amber-900/30 transition-all duration-200 hover:-translate-y-0.5"
             >
-              สั่งแก้วเลย — 25฿
+              สั่งเลย — 25฿
             </a>
           </div>
         </div>

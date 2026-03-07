@@ -160,11 +160,10 @@ export default function Wholesale() {
               {/* CTA */}
               <button
                 onClick={() => openModal(tier.qty as 50 | 200 | 500 | 1000)}
-                className={`w-full inline-flex items-center justify-center gap-2 font-black text-sm py-3 rounded-2xl transition-all duration-200 hover:-translate-y-0.5 ${
-                  tier.highlight
+                className={`w-full inline-flex items-center justify-center gap-2 font-black text-sm py-3 rounded-2xl transition-all duration-200 hover:-translate-y-0.5 ${tier.highlight
                     ? "bg-[#F5A623] hover:bg-[#D4861A] text-white shadow-md shadow-amber-200"
                     : "bg-[#FEF0D0] hover:bg-[#F5A623]/30 text-[#7B3F00]"
-                }`}
+                  }`}
               >
                 สนใจแพ็กเกจนี้
               </button>
@@ -227,7 +226,7 @@ export default function Wholesale() {
             สำหรับผู้ที่ต้องการเป็นตัวแทนจำหน่าย Juice Juice
           </p>
           <a
-            href="tel:+6699-999-9999"
+            href="tel:+6661-941-8787"
             className="inline-flex items-center gap-3 bg-[#F5A623] hover:bg-[#D4861A] text-white font-black text-base px-9 py-4 rounded-full shadow-lg shadow-amber-900/30 transition-all duration-200 hover:-translate-y-1 active:translate-y-0"
           >
             <Phone size={20} strokeWidth={2.5} />
